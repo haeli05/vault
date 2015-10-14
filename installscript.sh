@@ -1,5 +1,4 @@
 #!/bin/sh
-sudo -s
 
 echo 'updating packages'
 apt-get update -y
