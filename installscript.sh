@@ -1,43 +1,45 @@
 #!/bin/sh
+sudo -s
+
 echo 'updating packages'
-sudo apt-get update -y
-sudo apt-get upgrade -y
+apt-get update -y
+apt-get upgrade -y
 
 echo "installing python"
 
-sudo apt-get install python-pip python-m2crypto python-gevent fail2ban -y
+apt-get install python-pip python-m2crypto python-gevent fail2ban -y
 
 echo 'installing shadowsocks'
 
-sudo pip install shadowsocks 
+pip install shadowsocks 
 
 echo "installing chacha20"
 
-sudo apt-get install build-essential -y
+apt-get install build-essential -y
 
 wget https://github.com/jedisct1/libsodium/releases/download/1.0.3/libsodium-1.0.3.tar.gz
 tar xf libsodium-1.0.3.tar.gz && cd libsodium-1.0.3
 
-sudo ./configure && sudo make && sudo make install
+ ./configure && sudo make && sudo make install
 
-sudo ldconfig
+ldconfig
 
-sudo pip install superlance 
+pip install superlance 
 
-sudo apt-get install supervisor -y
+apt-get install supervisor -y
  
  
 echo "finished installs, now configuring IPtables"
  
 #sssetings then IPTABLES
-sudo -s
-
-wget https://raw.githubusercontent.com/shadowsocks/stackscript/master/shadowsocks.conf -O /etc/supervisor/conf.d/shadowsocks.conf
-
-wget https://raw.githubusercontent.com/shadowsocks/stackscript/master/local.conf -O /etc/sysctl.d/local.conf
 
 
+wget https://raw.githubusercontent.com/haeli05/vault/master/supervisor.conf -O /etc/supervisor/conf.d/shadowsocks.conf
+wget https://raw.githubusercontent.com/haeli05/vault/master/shadowsocks.conf -O /etc/sysctl.d/local.conf
 
+sysctl --system
+
+modprobe tcp_hybla
 
 
 service supervisor stop
