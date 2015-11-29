@@ -45,6 +45,10 @@ service supervisor stop
 echo 'ulimit -n 51200' >> /etc/default/supervisor
 service supervisor start
 
+echo "* soft nofile 51200" >> /etc/security/limits.conf
+echo "* hard nofile 51200" >> /etc/security/limits.conf
+
+
 
 #delete rules for eth0
 /sbin/tc qdisc del dev eth0 root
@@ -61,7 +65,7 @@ service supervisor start
 /sbin/tc class add dev eth0 parent 1:1 classid 1:5 htb rate 1024kbps ceil 2048kbps prio 0
 
 #userports, doesnt matter if 22 not involved
-/sbin/tc class add dev eth0 parent 1:1 classid 1:6 htb rate 10240kbps ceil 12288kbps prio 1
+/sbin/tc class add dev eth0 parent 1:1 classid 1:6 htb rate 10240kbps ceil 12288kbps prio 0
  
 #assign to ports
 /sbin/iptables -A OUTPUT -t mangle -p tcp --sport 22 -j MARK --set-mark 5
