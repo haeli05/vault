@@ -54,35 +54,36 @@ echo "* hard nofile 51200" >> /etc/security/limits.conf
 /sbin/tc qdisc del dev eth0 root
 
 
-
 #queuing discipline
 /sbin/tc qdisc add dev eth0 root handle 1:0 htb 
 
-#class w rate , ceil = max kilobytes not bits this is total
+#class w rate , ceil = max kilobytes not bits 
 /sbin/tc class add dev eth0 parent 1: classid 1:1 htb rate 1048576kbps
 
-#each sub branch, 22 high prio, NO SPACE FOR kbps
+#each sub branch, 22 high prio for ssh, NO SPACE FOR kbps
 /sbin/tc class add dev eth0 parent 1:1 classid 1:5 htb rate 1024kbps ceil 2048kbps prio 0
 
-#userports, doesnt matter if 22 not involved
-/sbin/tc class add dev eth0 parent 1:1 classid 1:6 htb rate 10240kbps ceil 12288kbps prio 0
+#userports
+/sbin/tc class add dev eth0 parent 1:1 classid 1:6 htb rate 10240kbps ceil 12288kbps prio 1
+
+#limits each port to 32 simult connections
+/sbin/iptables -A INPUT -p tcp --syn -match multiports --dport 8000:8020 -m connlimit --connlimit-above 32 -j REJECT --reject-with tcp-reset
+
+#accept connections to ssh, 80, 443, userrange
+iptables -t filter -m owner --uid-owner ssuser -A OUTPUT -p tcp -match multiport --dport 22,80,443 -j ACCEPT
+
+iptables -t filter -m owner --uid-owner ssuser -A OUTPUT -p tcp -match multiport --dport 8000:8020 -j ACCEPT
+
+#reject all other connections
+iptables -t filter -m owner --uid-owner ssuser -A OUTPUT -p tcp -j REJECT --reject-with tcp-reset 
  
 #assign to ports
 /sbin/iptables -A OUTPUT -t mangle -p tcp --sport 22 -j MARK --set-mark 5
 
 /sbin/iptables -A OUTPUT -t mangle -p tcp --sport 443 -j MARK --set-mark 6
 
-/sbin/iptables -A OUTPUT -t mangle -p tcp --sport 8000 -j MARK --set-mark 6
-/sbin/iptables -A OUTPUT -t mangle -p tcp --sport 8001 -j MARK --set-mark 6
-/sbin/iptables -A OUTPUT -t mangle -p tcp --sport 8002 -j MARK --set-mark 6
-/sbin/iptables -A OUTPUT -t mangle -p tcp --sport 8003 -j MARK --set-mark 6
-/sbin/iptables -A OUTPUT -t mangle -p tcp --sport 8004 -j MARK --set-mark 6
-/sbin/iptables -A OUTPUT -t mangle -p tcp --sport 8005 -j MARK --set-mark 6
-/sbin/iptables -A OUTPUT -t mangle -p tcp --sport 8006 -j MARK --set-mark 6
-/sbin/iptables -A OUTPUT -t mangle -p tcp --sport 8007 -j MARK --set-mark 6
-/sbin/iptables -A OUTPUT -t mangle -p tcp --sport 8008 -j MARK --set-mark 6
-/sbin/iptables -A OUTPUT -t mangle -p tcp --sport 8009 -j MARK --set-mark 6
-/sbin/iptables -A OUTPUT -t mangle -p tcp --sport 8010 -j MARK --set-mark 6
+/sbin/iptables -A OUTPUT -t mangle -p tcp -match multiports --sport 8000:8020 -j MARK --set-mark 6
+
 
 echo "IPtables set"
 
