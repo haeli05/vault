@@ -1,18 +1,18 @@
 #!/bin/sh
 
-echo 'updating packages'
+echo '===========================================updating packages==========================================='
 apt-get update -y
 apt-get upgrade -y
 
-echo "installing python"
+echo "===========================================installing python==========================================="
 
 apt-get install python-pip python-m2crypto python-gevent fail2ban -y
 
-echo 'installing shadowsocks'
+echo '===========================================installing shadowsocks==========================================='
 
 pip install shadowsocks 
 
-echo "installing chacha20"
+echo "===========================================installing chacha20==========================================="
 
 apt-get install build-essential -y
 
@@ -28,7 +28,7 @@ pip install superlance
 apt-get install supervisor -y
  
  
-echo "finished installs, now configuring IPtables"
+echo "===========================================finished installs, now configuring IPtables==========================================="
  
 #sssetings then IPTABLES
 
@@ -85,12 +85,24 @@ iptables -t filter -m owner --uid-owner ssuser -A OUTPUT -p tcp -j REJECT --reje
 /sbin/iptables -A OUTPUT -t mangle -p tcp -match multiports --sport 8000:8020 -j MARK --set-mark 6
 
 
-echo "IPtables set"
+echo "===========================================IPtables set==========================================="
 
 iptables-save > /etc/iptables/rules.v4
 
-echo "IPTABLES SAVED"
+echo "===========================================IPTABLES SAVED==========================================="
 
-apt-get install iptables-persistent
+apt-get install iptables-persistent -y
 
-echo "IPtables persistent installed"
+echo "===========================================IPtables persistent installed==========================================="
+
+echo "===========================================Installing wondershaper==========================================="
+
+apt-get install wondershaper -y
+
+# limit bandwidth to 40000Mb/125Mb up(linode limite) on eth0
+
+wondershaper eth0 40960000 125000
+
+echo "===========================================nginx for blocking BitTorrent trackers==========================================="
+
+apt-get install nginx denyhosts -y
