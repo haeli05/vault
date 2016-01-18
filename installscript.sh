@@ -70,12 +70,12 @@ echo "* hard nofile 51200" >> /etc/security/limits.conf
 /sbin/iptables -A INPUT -p tcp --syn -match multiports --dport 8000:8020 -m connlimit --connlimit-above 32 -j REJECT --reject-with tcp-reset
 
 #accept connections to ssh, 80, 443, userrange
-iptables -t filter -m owner --uid-owner ssuser -A OUTPUT -p tcp -match multiport --dport 22,80,443 -j ACCEPT
+iptables -t filter -m owner --uid-owner root -A OUTPUT -p tcp -match multiport --dport 22,80,443 -j ACCEPT
 
-iptables -t filter -m owner --uid-owner ssuser -A OUTPUT -p tcp -match multiport --dport 8000:8020 -j ACCEPT
+iptables -t filter -m owner --uid-owner root -A OUTPUT -p tcp -match multiport --dport 8000:8020 -j ACCEPT
 
 #reject all other connections
-iptables -t filter -m owner --uid-owner ssuser -A OUTPUT -p tcp -j REJECT --reject-with tcp-reset 
+iptables -t filter -m owner --uid-owner root -A OUTPUT -p tcp -j REJECT --reject-with tcp-reset 
  
 #assign to ports
 /sbin/iptables -A OUTPUT -t mangle -p tcp --sport 22 -j MARK --set-mark 5
@@ -106,3 +106,9 @@ wondershaper eth0 40960000 125000
 echo "===========================================nginx for blocking BitTorrent trackers==========================================="
 
 apt-get install nginx denyhosts -y
+
+#redirects torrent trackers to nginx
+
+iptables -t nat -m owner --uid-owner root -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port 3128
+
+
